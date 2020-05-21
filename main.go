@@ -14,9 +14,12 @@ import (
 
 	"github.com/f-secure-foundry/tamago/imx6"
 	"github.com/f-secure-foundry/tamago/imx6/usb"
+	"github.com/f-secure-foundry/tamago/imx6/usdhc"
 
 	"github.com/f-secure-foundry/tamago/usbarmory/mark-two"
 )
+
+var cards []*usdhc.Interface
 
 func init() {
 	log.SetFlags(0)
@@ -30,21 +33,41 @@ func init() {
 	}
 }
 
-// TODO: multi-LUN support to expose eMMC as well
-var drive = usbarmory.SD
+func detect(card *usdhc.Interface) (err error) {
+	err = card.Detect()
 
-func main() {
-	if err := drive.Detect(); err != nil {
-		log.Printf("imx6_usdhc: SD card error, %v", err)
+	if err != nil {
 		return
 	}
 
-	info := drive.Info()
+	info := card.Info()
 	capacity := int64(info.BlockSize) * int64(info.Blocks)
 	mebi := capacity / (1000 * 1000 * 1000)
 	mega := capacity / (1024 * 1024 * 1024)
 
-	log.Printf("imx6_usdhc: %d GB/%d GiB SD card detected %+v", mebi, mega, info)
+	log.Printf("imx6_usdhc: %d GB/%d GiB card detected %+v", mebi, mega, info)
+
+	cards = append(cards, card)
+
+	return
+}
+
+func main() {
+	err := detect(usbarmory.SD)
+
+	if err != nil {
+		usbarmory.LED("white", false)
+	} else {
+		usbarmory.LED("white", true)
+	}
+
+	err = detect(usbarmory.MMC)
+
+	if err != nil {
+		usbarmory.LED("blue", false)
+	} else {
+		usbarmory.LED("blue", true)
+	}
 
 	device := &usb.Device{
 		Setup: setup,

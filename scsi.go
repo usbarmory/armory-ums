@@ -42,6 +42,7 @@ const (
 
 type writeOp struct {
 	csw    *usb.CSW
+	lun    int
 	lba    int
 	blocks int
 	size   int
@@ -99,8 +100,8 @@ type CDB6 struct {
 }
 
 // p155, 3.22 READ CAPACITY (10) command, SCSI Commands Reference Manual, Rev. J
-func readCapacity() (res []byte, err error) {
-	info := drive.Info()
+func readCapacity(lun int) (res []byte, err error) {
+	info := cards[lun].Info()
 
 	if err != nil {
 		return
@@ -114,8 +115,8 @@ func readCapacity() (res []byte, err error) {
 	return
 }
 
-func read(lba int, blocks int) (err error) {
-	data, err := drive.ReadBlocks(lba, blocks)
+func read(lun int, lba int, blocks int) (err error) {
+	data, err := cards[lun].ReadBlocks(lba, blocks)
 
 	if err != nil {
 		return err
@@ -126,8 +127,8 @@ func read(lba int, blocks int) (err error) {
 	return
 }
 
-func write(lba int, buf []byte) (err error) {
-	return drive.WriteBlocks(lba, buf)
+func write(lun int, lba int, buf []byte) (err error) {
+	return cards[lun].WriteBlocks(lba, buf)
 }
 
 func handleCDB(cmd [16]byte, cbw *usb.CBW) (csw *usb.CSW, data []byte, next int, err error) {
@@ -137,6 +138,13 @@ func handleCDB(cmd [16]byte, cbw *usb.CBW) (csw *usb.CSW, data []byte, next int,
 	// p8, 3.3 Host/Device Packet Transfer Order, USB Mass Storage Class 1.0
 	csw = &usb.CSW{Tag: cbw.Tag}
 	csw.SetDefaults()
+
+	lun := int(cbw.LUN)
+
+	if int(lun+1) > len(cards) {
+		err = fmt.Errorf("invalid LUN")
+		return
+	}
 
 	switch op {
 	case TEST_UNIT_READY:
@@ -150,22 +158,23 @@ func handleCDB(cmd [16]byte, cbw *usb.CBW) (csw *usb.CSW, data []byte, next int,
 	case MODE_SENSE_6, MODE_SENSE_10:
 		data, err = sense(cmd[2])
 	case READ_CAPACITY_10:
-		data, err = readCapacity()
+		data, err = readCapacity(lun)
 	case READ_10, WRITE_10:
 		lba := int(binary.BigEndian.Uint32(cmd[2:]))
 		blocks := int(binary.BigEndian.Uint16(cmd[7:]))
 
 		if op == READ_10 {
-			err = read(lba, blocks)
+			err = read(lun, lba, blocks)
 		} else {
 			next = int(cbw.DataTransferLength)
 
-			if drive.Info().BlockSize*blocks != next {
+			if cards[lun].Info().BlockSize*blocks != next {
 				err = fmt.Errorf("unexpected %d blocks write transfer length (%d)", blocks, int(cbw.DataTransferLength))
 			}
 
 			dataPending = &writeOp{
 				csw:    csw,
+				lun:    lun,
 				lba:    lba,
 				blocks: blocks,
 				size:   next,
@@ -187,5 +196,5 @@ func handleWrite(buf []byte) (err error) {
 		return fmt.Errorf("len(buf) != size (%d != %d)", len(buf), dataPending.size)
 	}
 
-	return write(dataPending.lba, buf)
+	return write(dataPending.lun, dataPending.lba, buf)
 }

@@ -105,9 +105,11 @@ func setup(setup *usb.SetupData) (in []byte, err error) {
 	case usb.BULK_ONLY_MASS_STORAGE_RESET:
 		// For we ack this request without resetting.
 	case usb.GET_MAX_LUN:
-		// This results in a stall and "Devices that do not support
-		// multiple LUNs may STALL this command."
-		return nil, errors.New("unsupported")
+		if len(cards) == 0 {
+			return nil, errors.New("unsupported")
+		}
+
+		in = []byte{byte(len(cards) - 1)}
 	}
 
 	return
