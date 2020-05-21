@@ -22,7 +22,7 @@ DCD=imx6ul-512mb.cfg
 
 .PHONY: clean
 
-all: $(APP)
+all: imx
 
 $(APP):
 	@if [ "${TAMAGO}" == "" ] || [ ! -f "${TAMAGO}" ]; then \
