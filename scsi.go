@@ -18,26 +18,31 @@ import (
 
 // p65, 3. Direct Access Block commands (SPC-5 and SBC-4), SCSI Commands Reference Manual, Rev. J
 const (
-	TEST_UNIT_READY = 0x00
-	// TODO: 0x3
-	INQUIRY       = 0x12
-	MODE_SENSE_6  = 0x1a
-	MODE_SENSE_10 = 0x5a
-	// TODO; 0x23
+	TEST_UNIT_READY  = 0x00
+	REQUEST_SENSE    = 0x03
+	INQUIRY          = 0x12
+	MODE_SENSE_6     = 0x1a
+	MODE_SENSE_10    = 0x5a
 	READ_CAPACITY_10 = 0x25
 	READ_10          = 0x28
 	WRITE_10         = 0x2a
-	// TODO: 0x36
 
 	// 04-349r1 SPC-3 MMC-5 Merge PREVENT ALLOW MEDIUM REMOVAL commands
 	PREVENT_ALLOW_MEDIUM_REMOVAL = 0x1e
-)
 
-const (
 	// p376, Table 359 Mode page codes and subpage codes, SCSI Commands Reference Manual, Rev. J
 	PAGE_CODE_ALL = 0x3f
 
-	INQUIRY_DATA_MIN_LENGTH = 36
+	INQUIRY_DATA_LENGTH = 36
+	SENSE_DATA_LENGTH   = 18
+)
+
+const (
+	// exactly 8 bytes required
+	VendorID = "F-Secure"
+
+	// exactly 8 bytes required
+	ProductID = "UA-MK-II"
 )
 
 type writeOp struct {
@@ -70,25 +75,42 @@ func inquiry() (data []byte) {
 	data = append(data, make([]byte, 3)...)
 
 	// vendor identification
-	data = append(data, []byte("F-Secure")...)
+	data = append(data, []byte(VendorID)...)
 	// product identification
-	data = append(data, []byte("TamaGo  ")...)
+	data = append(data, []byte(ProductID)...)
 
 	// remaining data
-	data = append(data, make([]byte, INQUIRY_DATA_MIN_LENGTH-len(data))...)
+	data = append(data, make([]byte, INQUIRY_DATA_LENGTH-len(data))...)
+
+	return
+}
+
+// p56, 2.4.1.2 Fixed format sense data, SCSI Commands Reference Manual, Rev. J
+func sense() (data []byte) {
+	data = make([]byte, SENSE_DATA_LENGTH)
+
+	// error code
+	data[0] = 0x70
+	// no specific sense key
+	data[2] = 0x00
+	// additional sense length
+	data[7] = byte(len(data) - 1 - 7)
+	// no additional sense code
+	data[12] = 0x00
+	// no additional sense qualifier
 
 	return
 }
 
 // p111, 3.11 MODE SENSE(6) command, SCSI Commands Reference Manual, Rev. J
-func sense(pageCode byte) (res []byte, err error) {
+func modeSense(pageCode byte) (res []byte, err error) {
 	switch pageCode {
 	case PAGE_CODE_ALL:
 		// p378, 5.3.3 Mode parameter header formats, SCSI Commands Reference Manual, Rev. J
 		// empty 8-byte response
 		res = make([]byte, 8)
 	default:
-		return nil, fmt.Errorf("unsupported mode page code %#", pageCode)
+		return nil, fmt.Errorf("unsupported mode page code %#x", pageCode)
 	}
 
 	return
@@ -153,10 +175,16 @@ func handleCDB(cmd [16]byte, cbw *usb.CBW) (csw *usb.CSW, data []byte, next int,
 		data = inquiry()
 
 		if length > len(data) {
-			err = fmt.Errorf("invalid INQUIRY transfer length %d > %d", length, len(data))
+			err = fmt.Errorf("unsupported INQUIRY transfer length %d > %d", length, len(data))
+		}
+	case REQUEST_SENSE:
+		data = sense()
+
+		if length > len(data) {
+			err = fmt.Errorf("unsupported REQUEST_SENSE transfer length %d > %d", length, len(data))
 		}
 	case MODE_SENSE_6, MODE_SENSE_10:
-		data, err = sense(cmd[2])
+		data, err = modeSense(cmd[2])
 	case READ_CAPACITY_10:
 		data, err = readCapacity(lun)
 	case READ_10, WRITE_10:
@@ -185,7 +213,7 @@ func handleCDB(cmd [16]byte, cbw *usb.CBW) (csw *usb.CSW, data []byte, next int,
 	case PREVENT_ALLOW_MEDIUM_REMOVAL:
 		// ignored events
 	default:
-		err = fmt.Errorf("unsupported CDB Operation Code %#x %+v", op, cmd)
+		err = fmt.Errorf("unsupported CDB Operation Code %#x %+v", op, cbw)
 	}
 
 	return
