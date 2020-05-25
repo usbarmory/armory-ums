@@ -42,10 +42,10 @@ func detect(card *usdhc.Interface) (err error) {
 
 	info := card.Info()
 	capacity := int64(info.BlockSize) * int64(info.Blocks)
-	mebi := capacity / (1000 * 1000 * 1000)
-	mega := capacity / (1024 * 1024 * 1024)
+	giga := capacity / (1000 * 1000 * 1000)
+	gibi := capacity / (1024 * 1024 * 1024)
 
-	log.Printf("imx6_usdhc: %d GB/%d GiB card detected %+v", mebi, mega, info)
+	log.Printf("imx6_usdhc: %d GB/%d GiB card detected %+v", giga, gibi, info)
 
 	cards = append(cards, card)
 
