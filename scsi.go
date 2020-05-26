@@ -14,6 +14,7 @@ import (
 	"fmt"
 
 	"github.com/f-secure-foundry/tamago/imx6/usb"
+	"github.com/f-secure-foundry/tamago/imx6/usdhc"
 )
 
 // p65, 3. Direct Access Block commands (SPC-5 and SBC-4), SCSI Commands Reference Manual, Rev. J
@@ -122,23 +123,27 @@ type CDB6 struct {
 }
 
 // p155, 3.22 READ CAPACITY (10) command, SCSI Commands Reference Manual, Rev. J
-func readCapacity(lun int) (res []byte, err error) {
-	info := cards[lun].Info()
+func readCapacity(card *usdhc.Interface) (res []byte, err error) {
+	info := card.Info()
 
 	if err != nil {
 		return
 	}
 
+	if info.Blocks <= 0 {
+		return nil, fmt.Errorf("invalid block count %d", info.Blocks)
+	}
+
 	buf := new(bytes.Buffer)
-	binary.Write(buf, binary.BigEndian, uint32(info.Blocks))
+	binary.Write(buf, binary.BigEndian, uint32(info.Blocks)-1)
 	binary.Write(buf, binary.BigEndian, uint32(info.BlockSize))
 	res = buf.Bytes()
 
 	return
 }
 
-func read(lun int, lba int, blocks int) (err error) {
-	data, err := cards[lun].ReadBlocks(lba, blocks)
+func read(card *usdhc.Interface, lba int, blocks int) (err error) {
+	data, err := card.ReadBlocks(lba, blocks)
 
 	if err != nil {
 		return err
@@ -149,8 +154,8 @@ func read(lun int, lba int, blocks int) (err error) {
 	return
 }
 
-func write(lun int, lba int, buf []byte) (err error) {
-	return cards[lun].WriteBlocks(lba, buf)
+func write(card *usdhc.Interface, lba int, buf []byte) (err error) {
+	return card.WriteBlocks(lba, buf)
 }
 
 func handleCDB(cmd [16]byte, cbw *usb.CBW) (csw *usb.CSW, data []byte, next int, err error) {
@@ -167,6 +172,8 @@ func handleCDB(cmd [16]byte, cbw *usb.CBW) (csw *usb.CSW, data []byte, next int,
 		err = fmt.Errorf("invalid LUN")
 		return
 	}
+
+	card := cards[lun]
 
 	switch op {
 	case TEST_UNIT_READY:
@@ -186,17 +193,17 @@ func handleCDB(cmd [16]byte, cbw *usb.CBW) (csw *usb.CSW, data []byte, next int,
 	case MODE_SENSE_6, MODE_SENSE_10:
 		data, err = modeSense(cmd[2])
 	case READ_CAPACITY_10:
-		data, err = readCapacity(lun)
+		data, err = readCapacity(card)
 	case READ_10, WRITE_10:
 		lba := int(binary.BigEndian.Uint32(cmd[2:]))
 		blocks := int(binary.BigEndian.Uint16(cmd[7:]))
 
 		if op == READ_10 {
-			err = read(lun, lba, blocks)
+			err = read(card, lba, blocks)
 		} else {
 			next = int(cbw.DataTransferLength)
 
-			if cards[lun].Info().BlockSize*blocks != next {
+			if card.Info().BlockSize*blocks != next {
 				err = fmt.Errorf("unexpected %d blocks write transfer length (%d)", blocks, int(cbw.DataTransferLength))
 			}
 
@@ -224,5 +231,5 @@ func handleWrite(buf []byte) (err error) {
 		return fmt.Errorf("len(buf) != size (%d != %d)", len(buf), dataPending.size)
 	}
 
-	return write(dataPending.lun, dataPending.lba, buf)
+	return write(cards[dataPending.lun], dataPending.lba, buf)
 }
