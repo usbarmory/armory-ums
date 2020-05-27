@@ -23,12 +23,15 @@ cd tamago-go/src && ./all.bash
 cd ../bin && export TAMAGO=`pwd`/go
 ```
 
-Build the `armory-ums` application executable:
+Build the `armory-ums.imx` application executable:
 
 ```
 git clone https://github.com/f-secure-foundry/armory-ums && cd armory-ums
-make armory-ums.imx
+make CROSS_COMPILE=arm-none-eabi imx
 ```
+
+The resulting `armory-ums.imx` file can be executed over USB using
+[SDP ](https://github.com/f-secure-foundry/usbarmory/wiki/Boot-Modes-(Mk-II)#serial-download-protocol-sdp).
 
 Operation
 =========
