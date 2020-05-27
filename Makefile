@@ -12,16 +12,32 @@ BUILD_DATE = $(shell /bin/date -u "+%Y-%m-%d %H:%M:%S")
 BUILD = ${BUILD_USER}@${BUILD_HOST} on ${BUILD_DATE}
 REV = $(shell git rev-parse --short HEAD 2> /dev/null)
 
-SHELL = /bin/bash
 APP := armory-ums
 GOENV := GO_EXTLINK_ENABLED=0 CGO_ENABLED=0 GOOS=tamago GOARM=7 GOARCH=arm
 TEXT_START := 0x80010000 # ramStart (defined in imx6/imx6ul/memory.go) + 0x10000
 GOFLAGS := -tags linkramsize -ldflags "-s -w -T $(TEXT_START) -E _rt0_arm_tamago -R 0x1000 -X 'main.Build=${BUILD}' -X 'main.Revision=${REV}'"
+SHELL = /bin/bash
 DCD=imx6ul-512mb.cfg
 
 .PHONY: clean
 
-all: imx
+#### primary targets ####
+
+all: $(APP)
+
+imx: $(APP).imx
+
+imx_signed: $(APP)-signed.imx
+
+elf: $(APP)
+
+#### utilities ####
+
+check_tamago:
+	@if [ "${TAMAGO}" == "" ] || [ ! -f "${TAMAGO}" ]; then \
+		echo 'You need to set the TAMAGO variable to a compiled version of https://github.com/f-secure-foundry/tamago-go'; \
+		exit 1; \
+	fi
 
 check_usbarmory_git:
 	@if [ "${USBARMORY_GIT}" == "" ]; then \
@@ -30,30 +46,37 @@ check_usbarmory_git:
 		exit 1; \
 	fi
 
-$(APP):
-	@if [ "${TAMAGO}" == "" ] || [ ! -f "${TAMAGO}" ]; then \
-		echo 'You need to set the TAMAGO variable to a compiled version of https://github.com/f-secure-foundry/tamago-go'; \
-		exit 1; \
-	fi
+clean:
+	rm -f $(APP)
+	@rm -fr $(APP).bin $(APP).imx $(DCD)
 
+#### dependencies ####
+
+$(APP): check_tamago
 	$(GOENV) $(TAMAGO) build $(GOFLAGS) -o ${APP}
 
 $(APP).bin: $(APP)
-	arm-none-eabi-objcopy -j .text -j .rodata -j .shstrtab -j .typelink \
+	$(CROSS_COMPILE)objcopy -j .text -j .rodata -j .shstrtab -j .typelink \
 	    -j .itablink -j .gopclntab -j .go.buildinfo -j .noptrdata -j .data \
 	    -j .bss --set-section-flags .bss=alloc,load,contents \
 	    -j .noptrbss --set-section-flags .noptrbss=alloc,load,contents\
 	    --set-section-alignment .rodata=4096 --set-section-alignment .go.buildinfo=4096 $(APP) -O binary $(APP).bin
 
-$(APP).imx: $(APP).bin check_usbarmory_git
+$(APP).imx: check_usbarmory_git $(APP).bin
 	mkimage -n ${USBARMORY_GIT}/software/dcd/$(DCD) -T imximage -e $(TEXT_START) -d $(APP).bin $(APP).imx
 	# Copy entry point from ELF file
 	dd if=$(APP) of=$(APP).imx bs=1 count=4 skip=24 seek=4 conv=notrunc
 
-elf: $(APP)
+#### secure boot ####
 
-imx: $(APP).imx
-
-clean:
-	rm -f $(APP)
-	@rm -fr $(APP).raw $(APP).bin $(APP).imx $(DCD)
+$(APP)-signed.imx: check_usbarmory_git check_hab_keys $(APP).imx
+	${USBARMORY_GIT}/software/secure_boot/usbarmory_csftool \
+		--csf_key ${KEYS_PATH}/CSF_1_key.pem \
+		--csf_crt ${KEYS_PATH}/CSF_1_crt.pem \
+		--img_key ${KEYS_PATH}/IMG_1_key.pem \
+		--img_crt ${KEYS_PATH}/IMG_1_crt.pem \
+		--table   ${KEYS_PATH}/SRK_1_2_3_4_table.bin \
+		--index   1 \
+		--image   $(APP).imx \
+		--output  $(APP).csf && \
+	cat $(APP).imx $(APP).csf > $(APP)-signed.imx
