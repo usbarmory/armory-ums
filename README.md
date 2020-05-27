@@ -23,7 +23,8 @@ cd tamago-go/src && ./all.bash
 cd ../bin && export TAMAGO=`pwd`/go
 ```
 
-Build the `armory-ums.imx` application executable:
+Build the `armory-ums.imx` application executable (note that on secure booted
+units the `imx_signed` target should be used instead).
 
 ```
 git clone https://github.com/f-secure-foundry/armory-ums && cd armory-ums
