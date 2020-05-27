@@ -46,9 +46,16 @@ check_usbarmory_git:
 		exit 1; \
 	fi
 
+check_hab_keys:
+	@if [ "${KEYS_PATH}" == "" ]; then \
+		echo 'You need to set the KEYS_PATH variable to the path of secure/verified boot keys'; \
+		echo 'See https://github.com/f-secure-foundry/usbarmory/wiki/Secure-boot-(Mk-II)'; \
+		exit 1; \
+	fi
+
 clean:
 	rm -f $(APP)
-	@rm -fr $(APP).bin $(APP).imx $(DCD)
+	@rm -fr $(APP).bin $(APP).imx $(APP)-signed.imx $(APP).csf $(DCD)
 
 #### dependencies ####
 
