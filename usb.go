@@ -110,6 +110,8 @@ func setup(setup *usb.SetupData) (in []byte, err error) {
 		}
 
 		in = []byte{byte(len(cards) - 1)}
+	default:
+		err = fmt.Errorf("unsupported request code: %#x", setup.Request)
 	}
 
 	return
