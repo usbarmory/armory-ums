@@ -17,8 +17,8 @@ import (
 	"github.com/f-secure-foundry/tamago/imx6/usdhc"
 )
 
-// p65, 3. Direct Access Block commands (SPC-5 and SBC-4), SCSI Commands Reference Manual, Rev. J
 const (
+	// p65, 3. Direct Access Block commands (SPC-5 and SBC-4), SCSI Commands Reference Manual, Rev. J
 	TEST_UNIT_READY  = 0x00
 	REQUEST_SENSE    = 0x03
 	INQUIRY          = 0x12
@@ -31,8 +31,8 @@ const (
 	// 04-349r1 SPC-3 MMC-5 Merge PREVENT ALLOW MEDIUM REMOVAL commands
 	PREVENT_ALLOW_MEDIUM_REMOVAL = 0x1e
 
-	// p376, Table 359 Mode page codes and subpage codes, SCSI Commands Reference Manual, Rev. J
-	PAGE_CODE_ALL = 0x3f
+	// p33, 4.10, USB Mass Storage Class – UFI Command Specification Rev. 1.0
+	READ_FORMAT_CAPACITIES = 0x23
 
 	INQUIRY_DATA_LENGTH = 36
 	SENSE_DATA_LENGTH   = 18
@@ -58,7 +58,7 @@ type writeOp struct {
 var dataPending *writeOp
 
 // p94, 3.6.2 Standard INQUIRY data, SCSI Commands Reference Manual, Rev. J
-func inquiry() (data []byte) {
+func inquiry(length int) (data []byte) {
 	data = make([]byte, 5)
 
 	// device connected, direct access block device
@@ -80,8 +80,12 @@ func inquiry() (data []byte) {
 	// product identification
 	data = append(data, []byte(ProductID)...)
 
-	// remaining data
-	data = append(data, make([]byte, INQUIRY_DATA_LENGTH-len(data))...)
+	if length > len(data) {
+		// pad up to requested transfer length
+		data = append(data, make([]byte, length-len(data))...)
+	} else {
+		data = data[0:length]
+	}
 
 	return
 }
@@ -105,14 +109,12 @@ func sense() (data []byte) {
 
 // p111, 3.11 MODE SENSE(6) command, SCSI Commands Reference Manual, Rev. J
 func modeSense(pageCode byte) (res []byte, err error) {
-	switch pageCode {
-	case PAGE_CODE_ALL:
-		// p378, 5.3.3 Mode parameter header formats, SCSI Commands Reference Manual, Rev. J
-		// empty 8-byte response
-		res = make([]byte, 8)
-	default:
-		return nil, fmt.Errorf("unsupported mode page code %#x", pageCode)
-	}
+	// Unsupported, an empty 8-byte response is returned on all requests.
+	size := 8
+	res = make([]byte, size)
+
+	// p378, 5.3.3 Mode parameter header formats, SCSI Commands Reference Manual, Rev. J
+	res[0] = byte(size)
 
 	return
 }
@@ -125,21 +127,31 @@ type CDB6 struct {
 // p155, 3.22 READ CAPACITY (10) command, SCSI Commands Reference Manual, Rev. J
 func readCapacity(card *usdhc.Interface) (res []byte, err error) {
 	info := card.Info()
-
-	if err != nil {
-		return
-	}
+	buf := new(bytes.Buffer)
 
 	if info.Blocks <= 0 {
 		return nil, fmt.Errorf("invalid block count %d", info.Blocks)
 	}
 
-	buf := new(bytes.Buffer)
 	binary.Write(buf, binary.BigEndian, uint32(info.Blocks)-1)
 	binary.Write(buf, binary.BigEndian, uint32(info.BlockSize))
-	res = buf.Bytes()
 
-	return
+	return buf.Bytes(), nil
+}
+
+// p33, 4.10, USB Mass Storage Class – UFI Command Specification Rev. 1.0
+func readFormatCapacities(card *usdhc.Interface) (res []byte, err error) {
+	info := card.Info()
+	buf := new(bytes.Buffer)
+
+	// capacity list length
+	binary.Write(buf, binary.BigEndian, uint32(8))
+	// number of blocks
+	binary.Write(buf, binary.BigEndian, uint32(info.Blocks))
+	// descriptor code: formatted media | block length
+	binary.Write(buf, binary.BigEndian, uint32(0b10<<24|info.BlockSize&0xffffff))
+
+	return buf.Bytes(), nil
 }
 
 func read(card *usdhc.Interface, lba int, blocks int) (err error) {
@@ -176,14 +188,8 @@ func handleCDB(cmd [16]byte, cbw *usb.CBW) (csw *usb.CSW, data []byte, next int,
 	card := cards[lun]
 
 	switch op {
-	case TEST_UNIT_READY:
-		return
 	case INQUIRY:
-		data = inquiry()
-
-		if length > len(data) {
-			err = fmt.Errorf("unsupported INQUIRY transfer length %d > %d", length, len(data))
-		}
+		data = inquiry(length)
 	case REQUEST_SENSE:
 		data = sense()
 
@@ -192,6 +198,8 @@ func handleCDB(cmd [16]byte, cbw *usb.CBW) (csw *usb.CSW, data []byte, next int,
 		}
 	case MODE_SENSE_6, MODE_SENSE_10:
 		data, err = modeSense(cmd[2])
+	case READ_FORMAT_CAPACITIES:
+		data, err = readFormatCapacities(card)
 	case READ_CAPACITY_10:
 		data, err = readCapacity(card)
 	case READ_10, WRITE_10:
@@ -217,7 +225,7 @@ func handleCDB(cmd [16]byte, cbw *usb.CBW) (csw *usb.CSW, data []byte, next int,
 
 			csw = nil
 		}
-	case PREVENT_ALLOW_MEDIUM_REMOVAL:
+	case TEST_UNIT_READY, PREVENT_ALLOW_MEDIUM_REMOVAL:
 		// ignored events
 	default:
 		err = fmt.Errorf("unsupported CDB Operation Code %#x %+v", op, cbw)
