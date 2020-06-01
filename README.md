@@ -28,7 +28,7 @@ units the `imx_signed` target should be used instead).
 
 ```
 git clone https://github.com/f-secure-foundry/armory-ums && cd armory-ums
-make CROSS_COMPILE=arm-none-eabi imx
+make CROSS_COMPILE=arm-none-eabi- imx
 ```
 
 Executing
