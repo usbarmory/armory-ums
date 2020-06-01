@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/f-secure-foundry/tamago/dma"
 	"github.com/f-secure-foundry/tamago/imx6"
 	"github.com/f-secure-foundry/tamago/imx6/usb"
 	"github.com/f-secure-foundry/tamago/imx6/usdhc"
@@ -77,7 +78,7 @@ func main() {
 	iface := buildMassStorageInterface()
 	device.Configurations[0].AddInterface(iface)
 
-	imx6.SetDMA(dmaStart, dmaSize)
+	dma.Init(dmaStart, dmaSize)
 
 	usb.USB1.Init()
 	usb.USB1.DeviceMode()

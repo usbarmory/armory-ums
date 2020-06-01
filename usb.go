@@ -14,13 +14,17 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/f-secure-foundry/tamago/dma"
 	"github.com/f-secure-foundry/tamago/imx6/usb"
 )
 
 const maxPacketSize = 512
 
-// queue for device responses (IN)
-var queue = make(chan []byte, 1024)
+// queue for IN device responses
+var send = make(chan []byte, 2)
+
+// queue for IN device DMA buffers for later release
+var free = make(chan uint32, 1)
 
 func configureDevice(device *usb.Device) {
 	// Supported Language Code Zero: English
@@ -117,16 +121,6 @@ func setup(setup *usb.SetupData) (in []byte, err error) {
 	return
 }
 
-func tx(_ []byte, lastErr error) (in []byte, err error) {
-	select {
-	case res := <-queue:
-		in = res
-	default:
-	}
-
-	return
-}
-
 func parseCBW(buf []byte) (cbw *usb.CBW, err error) {
 	if len(buf) == 0 {
 		return
@@ -167,7 +161,9 @@ func rx(buf []byte, lastErr error) (res []byte, err error) {
 		csw := dataPending.csw
 		csw.DataResidue = 0
 
-		queue <- dataPending.csw.Bytes()
+		send <- dataPending.csw.Bytes()
+
+		dma.Release(dataPending.addr)
 		dataPending = nil
 
 		return
@@ -179,11 +175,11 @@ func rx(buf []byte, lastErr error) (res []byte, err error) {
 		return
 	}
 
-	csw, data, next, err := handleCDB(cbw.CommandBlock, cbw)
+	csw, data, err := handleCDB(cbw.CommandBlock, cbw)
 
 	defer func() {
 		if csw != nil {
-			queue <- csw.Bytes()
+			send <- csw.Bytes()
 		}
 	}()
 
@@ -194,11 +190,29 @@ func rx(buf []byte, lastErr error) (res []byte, err error) {
 	}
 
 	if len(data) > 0 {
-		queue <- data
+		send <- data
 	}
 
-	if next != 0 {
-		res = make([]byte, next)
+	if dataPending != nil {
+		dataPending.addr, res = dma.Reserve(dataPending.size, usb.DTD_PAGE_SIZE)
+	}
+
+	return
+}
+
+func tx(_ []byte, lastErr error) (in []byte, err error) {
+	select {
+	case buf := <-free:
+		dma.Release(buf)
+	default:
+	}
+
+	select {
+	case in = <-send:
+		if reserved, addr := dma.Reserved(in); reserved {
+			free <- addr
+		}
+	default:
 	}
 
 	return

@@ -13,6 +13,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"github.com/f-secure-foundry/tamago/dma"
 	"github.com/f-secure-foundry/tamago/imx6/usb"
 	"github.com/f-secure-foundry/tamago/imx6/usdhc"
 )
@@ -52,6 +53,7 @@ type writeOp struct {
 	lba    int
 	blocks int
 	size   int
+	addr   uint32
 }
 
 // buffer for write commands (which spawn across multiple USB transfers)
@@ -155,13 +157,15 @@ func readFormatCapacities(card *usdhc.Interface) (res []byte, err error) {
 }
 
 func read(card *usdhc.Interface, lba int, blocks int) (err error) {
-	data, err := card.ReadBlocks(lba, blocks)
+	_, buf := dma.Reserve(blocks*card.Info().BlockSize, 4096)
+
+	err = card.ReadBlocks(lba, blocks, buf)
 
 	if err != nil {
-		return err
+		return
 	}
 
-	queue <- data
+	send <- buf
 
 	return
 }
@@ -170,7 +174,7 @@ func write(card *usdhc.Interface, lba int, buf []byte) (err error) {
 	return card.WriteBlocks(lba, buf)
 }
 
-func handleCDB(cmd [16]byte, cbw *usb.CBW) (csw *usb.CSW, data []byte, next int, err error) {
+func handleCDB(cmd [16]byte, cbw *usb.CBW) (csw *usb.CSW, data []byte, err error) {
 	op := cmd[0]
 	length := int(cbw.DataTransferLength)
 
@@ -209,10 +213,10 @@ func handleCDB(cmd [16]byte, cbw *usb.CBW) (csw *usb.CSW, data []byte, next int,
 		if op == READ_10 {
 			err = read(card, lba, blocks)
 		} else {
-			next = int(cbw.DataTransferLength)
+			size := int(cbw.DataTransferLength)
 
-			if card.Info().BlockSize*blocks != next {
-				err = fmt.Errorf("unexpected %d blocks write transfer length (%d)", blocks, int(cbw.DataTransferLength))
+			if card.Info().BlockSize*blocks != size {
+				err = fmt.Errorf("unexpected %d blocks write transfer length (%d)", blocks, size)
 			}
 
 			dataPending = &writeOp{
@@ -220,7 +224,7 @@ func handleCDB(cmd [16]byte, cbw *usb.CBW) (csw *usb.CSW, data []byte, next int,
 				lun:    lun,
 				lba:    lba,
 				blocks: blocks,
-				size:   next,
+				size:   size,
 			}
 
 			csw = nil
