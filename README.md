@@ -9,7 +9,7 @@ Binary releases
 ===============
 
 Pre-compiled binary releases are available
-[here](https://github.com/f-secure-foundry/armory-ums).
+[here](https://github.com/f-secure-foundry/armory-ums/releases).
 
 Compiling
 =========
@@ -58,10 +58,10 @@ Once running, the USB armory Mk II can be used like any standard USB drive,
 exposing both internal eMMC card as well as the external microSD card (if
 present).
 
-| Card          | Evaluation order | LED status¹ |
-|:-------------:|------------------|-------------|
-| external uSD  | 1st              | white       |
-| internal eMMC | 2nd              | blue        |
+| Card              | Evaluation order | LED status¹ |
+|:-----------------:|------------------|-------------|
+| external microSD  | 1st              | white       |
+| internal eMMC     | 2nd              | blue        |
 
 ¹ LED on indicates successful detection
 
