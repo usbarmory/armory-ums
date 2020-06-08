@@ -127,7 +127,7 @@ type CDB6 struct {
 }
 
 // p155, 3.22 READ CAPACITY (10) command, SCSI Commands Reference Manual, Rev. J
-func readCapacity(card *usdhc.Interface) (res []byte, err error) {
+func readCapacity(card *usdhc.USDHC) (res []byte, err error) {
 	info := card.Info()
 	buf := new(bytes.Buffer)
 
@@ -142,7 +142,7 @@ func readCapacity(card *usdhc.Interface) (res []byte, err error) {
 }
 
 // p33, 4.10, USB Mass Storage Class – UFI Command Specification Rev. 1.0
-func readFormatCapacities(card *usdhc.Interface) (res []byte, err error) {
+func readFormatCapacities(card *usdhc.USDHC) (res []byte, err error) {
 	info := card.Info()
 	buf := new(bytes.Buffer)
 
@@ -156,7 +156,7 @@ func readFormatCapacities(card *usdhc.Interface) (res []byte, err error) {
 	return buf.Bytes(), nil
 }
 
-func read(card *usdhc.Interface, lba int, blocks int) (err error) {
+func read(card *usdhc.USDHC, lba int, blocks int) (err error) {
 	_, buf := dma.Reserve(blocks*card.Info().BlockSize, 4096)
 
 	err = card.ReadBlocks(lba, blocks, buf)
@@ -170,7 +170,7 @@ func read(card *usdhc.Interface, lba int, blocks int) (err error) {
 	return
 }
 
-func write(card *usdhc.Interface, lba int, buf []byte) (err error) {
+func write(card *usdhc.USDHC, lba int, buf []byte) (err error) {
 	return card.WriteBlocks(lba, buf)
 }
 

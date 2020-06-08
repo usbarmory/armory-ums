@@ -20,7 +20,7 @@ import (
 	"github.com/f-secure-foundry/tamago/usbarmory/mark-two"
 )
 
-var cards []*usdhc.Interface
+var cards []*usdhc.USDHC
 
 func init() {
 	log.SetFlags(0)
@@ -34,7 +34,7 @@ func init() {
 	}
 }
 
-func detect(card *usdhc.Interface) (err error) {
+func detect(card *usdhc.USDHC) (err error) {
 	err = card.Detect()
 
 	if err != nil {
