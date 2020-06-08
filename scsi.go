@@ -121,11 +121,6 @@ func modeSense(pageCode byte) (res []byte, err error) {
 	return
 }
 
-// p37, 2.1 Command Descriptor Block (CDB), SCSI Commands Reference Manual, Rev. J
-type CDB6 struct {
-	OperationCode uint8
-}
-
 // p155, 3.22 READ CAPACITY (10) command, SCSI Commands Reference Manual, Rev. J
 func readCapacity(card *usdhc.USDHC) (res []byte, err error) {
 	info := card.Info()
