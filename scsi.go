@@ -152,7 +152,7 @@ func readFormatCapacities(card *usdhc.USDHC) (res []byte, err error) {
 }
 
 func read(card *usdhc.USDHC, lba int, blocks int) (err error) {
-	_, buf := dma.Reserve(blocks*card.Info().BlockSize, 4096)
+	_, buf := dma.Reserve(blocks*card.Info().BlockSize, usb.DTD_PAGE_SIZE)
 
 	err = card.ReadBlocks(lba, blocks, buf)
 
