@@ -11,10 +11,13 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/f-secure-foundry/tamago/dma"
+	"github.com/f-secure-foundry/tamago/imx6"
 	"github.com/f-secure-foundry/tamago/imx6/usb"
 )
 
@@ -46,7 +49,14 @@ func configureDevice(device *usb.Device) {
 	iProduct, _ := device.AddString(`Storage Media`)
 	device.Descriptor.Product = iProduct
 
-	iSerial, _ := device.AddString(`0.1`)
+	// p9, 4.1.1 Serial Number, USB Mass Storage Class 1.0
+	//
+	// The serial number format is [0-9A-F]{12,}, the NXP Unique
+	// ID is converted accordingly.
+	uid := imx6.UniqueID()
+	serial := strings.ToUpper(hex.EncodeToString(uid[:]))
+
+	iSerial, _ := device.AddString(serial)
 	device.Descriptor.SerialNumber = iSerial
 
 	conf := &usb.ConfigurationDescriptor{}
