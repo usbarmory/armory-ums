@@ -162,6 +162,7 @@ func rx(buf []byte, lastErr error) (res []byte, err error) {
 	var cbw *usb.CBW
 
 	if dataPending != nil {
+		defer dma.Release(dataPending.addr)
 		err = handleWrite(buf[0:dataPending.size])
 
 		if err != nil {
@@ -173,7 +174,6 @@ func rx(buf []byte, lastErr error) (res []byte, err error) {
 
 		send <- dataPending.csw.Bytes()
 
-		dma.Release(dataPending.addr)
 		dataPending = nil
 
 		return
