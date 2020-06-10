@@ -1,2 +1,4 @@
-github.com/f-secure-foundry/tamago v0.0.0-20200609085001-1cf499249137 h1:WXm098Ow+ik/8UjbX+gg9LO593XP8ZfH8VPVPwh/gTc=
-github.com/f-secure-foundry/tamago v0.0.0-20200609085001-1cf499249137/go.mod h1:DqIfWSA3FGzHRg3lrltaiqlpVSZwqRkRTbuLz335LoI=
+github.com/f-secure-foundry/tamago v0.0.0-20200609092021-909c79780325 h1:sH6RAFEJp3cHTNfferxHu/d59SPIN8KiNVzK1nh2J+Q=
+github.com/f-secure-foundry/tamago v0.0.0-20200609092021-909c79780325/go.mod h1:DqIfWSA3FGzHRg3lrltaiqlpVSZwqRkRTbuLz335LoI=
+github.com/f-secure-foundry/tamago v0.0.0-20200610074239-bca5eb456ad4 h1:jVDpPVmXXuWfkylljhXymijMtPNB+Y4QhoIhfQTRuGE=
+github.com/f-secure-foundry/tamago v0.0.0-20200610074239-bca5eb456ad4/go.mod h1:DqIfWSA3FGzHRg3lrltaiqlpVSZwqRkRTbuLz335LoI=
