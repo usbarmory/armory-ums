@@ -110,13 +110,12 @@ func sense() (data []byte) {
 }
 
 // p111, 3.11 MODE SENSE(6) command, SCSI Commands Reference Manual, Rev. J
-func modeSense(pageCode byte) (res []byte, err error) {
-	// Unsupported, an empty 8-byte response is returned on all requests.
-	size := 8
-	res = make([]byte, size)
+func modeSense(length int) (res []byte, err error) {
+	// Unsupported, an empty response is returned on all requests.
+	res = make([]byte, length)
 
 	// p378, 5.3.3 Mode parameter header formats, SCSI Commands Reference Manual, Rev. J
-	res[0] = byte(size)
+	res[0] = byte(length)
 
 	return
 }
@@ -197,7 +196,7 @@ func handleCDB(cmd [16]byte, cbw *usb.CBW) (csw *usb.CSW, data []byte, err error
 			err = fmt.Errorf("unsupported REQUEST_SENSE transfer length %d > %d", length, len(data))
 		}
 	case MODE_SENSE_6, MODE_SENSE_10:
-		data, err = modeSense(cmd[2])
+		data, err = modeSense(length)
 	case READ_FORMAT_CAPACITIES:
 		data, err = readFormatCapacities(card)
 	case READ_CAPACITY_10:
