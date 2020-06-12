@@ -66,7 +66,7 @@ $(APP).bin: $(APP)
 	$(CROSS_COMPILE)objcopy -j .text -j .rodata -j .shstrtab -j .typelink \
 	    -j .itablink -j .gopclntab -j .go.buildinfo -j .noptrdata -j .data \
 	    -j .bss --set-section-flags .bss=alloc,load,contents \
-	    -j .noptrbss --set-section-flags .noptrbss=alloc,load,contents\
+	    -j .noptrbss --set-section-flags .noptrbss=alloc,load,contents \
 	    $(APP) -O binary $(APP).bin
 
 $(APP).imx: check_usbarmory_git $(APP).bin
