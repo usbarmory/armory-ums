@@ -72,7 +72,7 @@ func inquiry(length int) (data []byte) {
 	// response data format (only 2 is allowed)
 	data[3] = 0x02
 	// additional length
-	data[4] = 31
+	data[4] = byte(length - 5)
 
 	// unused or obsolete flags
 	data = append(data, make([]byte, 3)...)
