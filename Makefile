@@ -55,7 +55,7 @@ check_hab_keys:
 
 clean:
 	rm -f $(APP)
-	@rm -fr $(APP).bin $(APP).imx $(APP)-signed.imx $(APP).csf $(DCD)
+	@rm -fr $(APP).bin $(APP).imx $(APP)-signed.imx $(APP).csf
 
 #### dependencies ####
 
