@@ -17,8 +17,8 @@ import (
 	"strings"
 
 	"github.com/f-secure-foundry/tamago/dma"
-	"github.com/f-secure-foundry/tamago/imx6"
-	"github.com/f-secure-foundry/tamago/imx6/usb"
+	"github.com/f-secure-foundry/tamago/soc/imx6"
+	"github.com/f-secure-foundry/tamago/soc/imx6/usb"
 )
 
 const maxPacketSize = 512
