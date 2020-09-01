@@ -17,7 +17,6 @@ GOENV := GO_EXTLINK_ENABLED=0 CGO_ENABLED=0 GOOS=tamago GOARM=7 GOARCH=arm
 TEXT_START := 0x80010000 # ramStart (defined in imx6/imx6ul/memory.go) + 0x10000
 GOFLAGS := -tags linkramsize -ldflags "-s -w -T $(TEXT_START) -E _rt0_arm_tamago -R 0x1000 -X 'main.Build=${BUILD}' -X 'main.Revision=${REV}'"
 SHELL = /bin/bash
-DCD=imx6ul-512mb.cfg
 
 .PHONY: clean
 
@@ -46,6 +45,11 @@ check_usbarmory_git:
 		exit 1; \
 	fi
 
+dcd:
+	echo $(GOMODCACHE)
+	echo $(TAMAGO_PKG)
+	cp -f $(GOMODCACHE)/$(TAMAGO_PKG)/board/f-secure/usbarmory/mark-two/imximage.cfg $(APP).dcd
+
 check_hab_keys:
 	@if [ "${KEYS_PATH}" == "" ]; then \
 		echo 'You need to set the KEYS_PATH variable to the path of secure/verified boot keys'; \
@@ -62,6 +66,11 @@ clean:
 $(APP): check_tamago
 	$(GOENV) $(TAMAGO) build $(GOFLAGS) -o ${APP}
 
+$(APP).dcd: check_tamago
+$(APP).dcd: GOMODCACHE=$(shell ${TAMAGO} env GOMODCACHE)
+$(APP).dcd: TAMAGO_PKG=$(shell grep "github.com/f-secure-foundry/tamago " go.mod | awk '{print $$2"@"$$3}')
+$(APP).dcd: dcd
+
 $(APP).bin: $(APP)
 	$(CROSS_COMPILE)objcopy -j .text -j .rodata -j .shstrtab -j .typelink \
 	    -j .itablink -j .gopclntab -j .go.buildinfo -j .noptrdata -j .data \
@@ -69,8 +78,8 @@ $(APP).bin: $(APP)
 	    -j .noptrbss --set-section-flags .noptrbss=alloc,load,contents \
 	    $(APP) -O binary $(APP).bin
 
-$(APP).imx: check_usbarmory_git $(APP).bin
-	mkimage -n ${USBARMORY_GIT}/software/dcd/$(DCD) -T imximage -e $(TEXT_START) -d $(APP).bin $(APP).imx
+$(APP).imx: $(APP).bin $(APP).dcd
+	mkimage -n $(APP).dcd -T imximage -e $(TEXT_START) -d $(APP).bin $(APP).imx
 	# Copy entry point from ELF file
 	dd if=$(APP) of=$(APP).imx bs=1 count=4 skip=24 seek=4 conv=notrunc
 
