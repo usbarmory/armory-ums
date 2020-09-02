@@ -52,7 +52,7 @@ dcd:
 
 check_hab_keys:
 	@if [ "${KEYS_PATH}" == "" ]; then \
-		echo 'You need to set the KEYS_PATH variable to the path of secure/verified boot keys'; \
+		echo 'You need to set the KEYS_PATH variable to the path of secure boot keys'; \
 		echo 'See https://github.com/f-secure-foundry/usbarmory/wiki/Secure-boot-(Mk-II)'; \
 		exit 1; \
 	fi
