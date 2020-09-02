@@ -18,13 +18,13 @@ Build the [TamaGo compiler](https://github.com/f-secure-foundry/tamago-go)
 (or use the [latest binary release](https://github.com/f-secure-foundry/tamago-go/releases/latest)):
 
 ```
-git clone https://github.com/f-secure-foundry/tamago-go -b tamago1.15
+git clone https://github.com/f-secure-foundry/tamago-go -b tamago1.15.1
 cd tamago-go/src && ./all.bash
 cd ../bin && export TAMAGO=`pwd`/go
 ```
 
 Build the `armory-ums.imx` application executable (note that on secure booted
-units the `imx_signed` target should be used instead with the relevant
+units the `imx_signed` target should be used with the relevant
 [`HAB_KEYS`](https://github.com/f-secure-foundry/usbarmory/wiki/Secure-boot-(Mk-II)) set.
 
 
