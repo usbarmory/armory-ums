@@ -68,7 +68,7 @@ $(APP): check_tamago
 
 $(APP).dcd: check_tamago
 $(APP).dcd: GOMODCACHE=$(shell ${TAMAGO} env GOMODCACHE)
-$(APP).dcd: TAMAGO_PKG=$(shell grep "github.com/f-secure-foundry/tamago " go.mod | awk '{print $$2"@"$$3}')
+$(APP).dcd: TAMAGO_PKG=$(shell grep "github.com/f-secure-foundry/tamago v" go.mod | awk '{print $$2"@"$$3}')
 $(APP).dcd: dcd
 
 $(APP).bin: $(APP)
