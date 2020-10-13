@@ -110,22 +110,16 @@ func buildMassStorageInterface() (iface *usb.InterfaceDescriptor) {
 
 // setup handles the class specific control requests specified at
 // p7, 3.1 - 3.2, USB Mass Storage Class 1.0
-func setup(setup *usb.SetupData) (in []byte, err error) {
-	if setup == nil {
-		return
-	}
-
+func setup(setup *usb.SetupData) (in []byte, ack bool, done bool, err error) {
 	switch setup.Request {
 	case usb.BULK_ONLY_MASS_STORAGE_RESET:
 		// For we ack this request without resetting.
 	case usb.GET_MAX_LUN:
 		if len(cards) == 0 {
-			return nil, errors.New("unsupported")
+			err = errors.New("unsupported")
+		} else {
+			in = []byte{byte(len(cards) - 1)}
 		}
-
-		in = []byte{byte(len(cards) - 1)}
-	default:
-		err = fmt.Errorf("unsupported request code: %#x", setup.Request)
 	}
 
 	return
