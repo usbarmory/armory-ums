@@ -12,11 +12,12 @@ BUILD_DATE = $(shell /bin/date -u "+%Y-%m-%d %H:%M:%S")
 BUILD = ${BUILD_USER}@${BUILD_HOST} on ${BUILD_DATE}
 REV = $(shell git rev-parse --short HEAD 2> /dev/null)
 
+SHELL = /bin/bash
+
 APP := armory-ums
 GOENV := GO_EXTLINK_ENABLED=0 CGO_ENABLED=0 GOOS=tamago GOARM=7 GOARCH=arm
 TEXT_START := 0x80010000 # ramStart (defined in imx6/imx6ul/memory.go) + 0x10000
 GOFLAGS := -tags linkramsize -ldflags "-s -w -T $(TEXT_START) -E _rt0_arm_tamago -R 0x1000 -X 'main.Build=${BUILD}' -X 'main.Revision=${REV}'"
-SHELL = /bin/bash
 
 .PHONY: clean
 
@@ -45,17 +46,17 @@ check_usbarmory_git:
 		exit 1; \
 	fi
 
-dcd:
-	echo $(GOMODCACHE)
-	echo $(TAMAGO_PKG)
-	cp -f $(GOMODCACHE)/$(TAMAGO_PKG)/board/f-secure/usbarmory/mark-two/imximage.cfg $(APP).dcd
-
 check_hab_keys:
 	@if [ "${HAB_KEYS}" == "" ]; then \
 		echo 'You need to set the HAB_KEYS variable to the path of secure boot keys'; \
 		echo 'See https://github.com/f-secure-foundry/usbarmory/wiki/Secure-boot-(Mk-II)'; \
 		exit 1; \
 	fi
+
+dcd:
+	echo $(GOMODCACHE)
+	echo $(TAMAGO_PKG)
+	cp -f $(GOMODCACHE)/$(TAMAGO_PKG)/board/f-secure/usbarmory/mark-two/imximage.cfg $(APP).dcd
 
 clean:
 	rm -f $(APP)
