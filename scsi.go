@@ -28,23 +28,26 @@ const (
 	READ_CAPACITY_10 = 0x25
 	READ_10          = 0x28
 	WRITE_10         = 0x2a
+	REPORT_LUNS      = 0xa0
+
+	// service actions
+	SERVICE_ACTION   = 0x9e
+	READ_CAPACITY_16 = 0x10
 
 	// 04-349r1 SPC-3 MMC-5 Merge PREVENT ALLOW MEDIUM REMOVAL commands
 	PREVENT_ALLOW_MEDIUM_REMOVAL = 0x1e
 
 	// p33, 4.10, USB Mass Storage Class – UFI Command Specification Rev. 1.0
 	READ_FORMAT_CAPACITIES = 0x23
-
-	INQUIRY_DATA_LENGTH = 36
-	SENSE_DATA_LENGTH   = 18
 )
 
 const (
 	// exactly 8 bytes required
 	VendorID = "F-Secure"
-
-	// exactly 8 bytes required
-	ProductID = "UA-MK-II"
+	// exactly 16 bytes required
+	ProductID = "USB armory Mk II"
+	// exactly 4 bytes required
+	ProductRevision = "1.00"
 )
 
 type writeOp struct {
@@ -54,6 +57,7 @@ type writeOp struct {
 	blocks int
 	size   int
 	addr   uint32
+	buf    []byte
 }
 
 // buffer for write commands (which spawn across multiple USB transfers)
@@ -77,10 +81,9 @@ func inquiry(length int) (data []byte) {
 	// unused or obsolete flags
 	data = append(data, make([]byte, 3)...)
 
-	// vendor identification
 	data = append(data, []byte(VendorID)...)
-	// product identification
 	data = append(data, []byte(ProductID)...)
+	data = append(data, []byte(ProductRevision)...)
 
 	if length > len(data) {
 		// pad up to requested transfer length
@@ -93,8 +96,8 @@ func inquiry(length int) (data []byte) {
 }
 
 // p56, 2.4.1.2 Fixed format sense data, SCSI Commands Reference Manual, Rev. J
-func sense() (data []byte) {
-	data = make([]byte, SENSE_DATA_LENGTH)
+func sense(length int) (data []byte, err error) {
+	data = make([]byte, 18)
 
 	// error code
 	data[0] = 0x70
@@ -106,28 +109,48 @@ func sense() (data []byte) {
 	data[12] = 0x00
 	// no additional sense qualifier
 
+	if length < len(data) {
+		return nil, fmt.Errorf("unsupported REQUEST_SENSE transfer length %d > %d", length, len(data))
+	}
+
 	return
 }
 
 // p111, 3.11 MODE SENSE(6) command, SCSI Commands Reference Manual, Rev. J
-func modeSense(length int) (res []byte, err error) {
+func modeSense(length int) (data []byte, err error) {
 	// Unsupported, an empty response is returned on all requests.
-	res = make([]byte, length)
+	data = make([]byte, length)
 
 	// p378, 5.3.3 Mode parameter header formats, SCSI Commands Reference Manual, Rev. J
-	res[0] = byte(length)
+	data[0] = byte(length)
 
 	return
 }
 
-// p155, 3.22 READ CAPACITY (10) command, SCSI Commands Reference Manual, Rev. J
-func readCapacity(card *usdhc.USDHC) (res []byte, err error) {
-	info := card.Info()
+// p179, 3.33 REPORT LUNS command, SCSI Commands Reference Manual, Rev. J
+func reportLUNs() (data []byte, err error) {
 	buf := new(bytes.Buffer)
+	luns := len(cards)
+
+	binary.Write(buf, binary.BigEndian, uint32(luns*8))
+	binary.Write(buf, binary.BigEndian, make([]byte, 4))
+
+	for lun := 0; lun < len(cards); lun++ {
+		binary.Write(buf, binary.BigEndian, uint64(lun))
+	}
+
+	return buf.Bytes(), nil
+}
+
+// p155, 3.22 READ CAPACITY (10) command, SCSI Commands Reference Manual, Rev. J
+func readCapacity10(card *usdhc.USDHC) (data []byte, err error) {
+	info := card.Info()
 
 	if info.Blocks <= 0 {
 		return nil, fmt.Errorf("invalid block count %d", info.Blocks)
 	}
+
+	buf := new(bytes.Buffer)
 
 	binary.Write(buf, binary.BigEndian, uint32(info.Blocks)-1)
 	binary.Write(buf, binary.BigEndian, uint32(info.BlockSize))
@@ -135,8 +158,26 @@ func readCapacity(card *usdhc.USDHC) (res []byte, err error) {
 	return buf.Bytes(), nil
 }
 
+// p157, 3.23 READ CAPACITY (16) command, SCSI Commands Reference Manual, Rev. J
+func readCapacity16(card *usdhc.USDHC) (data []byte, err error) {
+	info := card.Info()
+	buf := new(bytes.Buffer)
+
+	if info.Blocks <= 0 {
+		return nil, fmt.Errorf("invalid block count %d", info.Blocks)
+	}
+
+	binary.Write(buf, binary.BigEndian, uint64(info.Blocks)-1)
+	binary.Write(buf, binary.BigEndian, uint64(info.BlockSize))
+
+	buf.Grow(32 - buf.Len())
+
+	return buf.Bytes(), nil
+
+}
+
 // p33, 4.10, USB Mass Storage Class – UFI Command Specification Rev. 1.0
-func readFormatCapacities(card *usdhc.USDHC) (res []byte, err error) {
+func readFormatCapacities(card *usdhc.USDHC) (data []byte, err error) {
 	info := card.Info()
 	buf := new(bytes.Buffer)
 
@@ -190,17 +231,15 @@ func handleCDB(cmd [16]byte, cbw *usb.CBW) (csw *usb.CSW, data []byte, err error
 	case INQUIRY:
 		data = inquiry(length)
 	case REQUEST_SENSE:
-		data = sense()
-
-		if length > len(data) {
-			err = fmt.Errorf("unsupported REQUEST_SENSE transfer length %d > %d", length, len(data))
-		}
+		data, err = sense(length)
 	case MODE_SENSE_6, MODE_SENSE_10:
 		data, err = modeSense(length)
+	case REPORT_LUNS:
+		data, err = reportLUNs()
 	case READ_FORMAT_CAPACITIES:
 		data, err = readFormatCapacities(card)
 	case READ_CAPACITY_10:
-		data, err = readCapacity(card)
+		data, err = readCapacity10(card)
 	case READ_10, WRITE_10:
 		lba := int(binary.BigEndian.Uint32(cmd[2:]))
 		blocks := int(binary.BigEndian.Uint16(cmd[7:]))
@@ -223,6 +262,13 @@ func handleCDB(cmd [16]byte, cbw *usb.CBW) (csw *usb.CSW, data []byte, err error
 			}
 
 			csw = nil
+		}
+	case SERVICE_ACTION:
+		switch cmd[1] {
+		case READ_CAPACITY_16:
+			data, err = readCapacity16(card)
+		default:
+			err = fmt.Errorf("unsupported service action %#x %+v", op, cbw)
 		}
 	case TEST_UNIT_READY, PREVENT_ALLOW_MEDIUM_REMOVAL:
 		// ignored events

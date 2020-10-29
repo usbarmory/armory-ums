@@ -157,7 +157,7 @@ func rx(buf []byte, lastErr error) (res []byte, err error) {
 
 	if dataPending != nil {
 		defer dma.Release(dataPending.addr)
-		err = handleWrite(buf[0:dataPending.size])
+		err = handleWrite(dataPending.buf)
 
 		if err != nil {
 			return
@@ -198,7 +198,8 @@ func rx(buf []byte, lastErr error) (res []byte, err error) {
 	}
 
 	if dataPending != nil {
-		dataPending.addr, res = dma.Reserve(dataPending.size, usb.DTD_PAGE_SIZE)
+		dataPending.addr, dataPending.buf = dma.Reserve(dataPending.size, usb.DTD_PAGE_SIZE)
+		res = dataPending.buf
 	}
 
 	return
@@ -211,12 +212,10 @@ func tx(_ []byte, lastErr error) (in []byte, err error) {
 	default:
 	}
 
-	select {
-	case in = <-send:
-		if reserved, addr := dma.Reserved(in); reserved {
-			free <- addr
-		}
-	default:
+	in = <-send
+
+	if reserved, addr := dma.Reserved(in); reserved {
+		free <- addr
 	}
 
 	return
