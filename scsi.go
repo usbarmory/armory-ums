@@ -128,7 +128,7 @@ func modeSense(length int) (data []byte, err error) {
 }
 
 // p179, 3.33 REPORT LUNS command, SCSI Commands Reference Manual, Rev. J
-func reportLUNs() (data []byte, err error) {
+func reportLUNs(length int) (data []byte, err error) {
 	buf := new(bytes.Buffer)
 	luns := len(cards)
 
@@ -139,7 +139,13 @@ func reportLUNs() (data []byte, err error) {
 		binary.Write(buf, binary.BigEndian, uint64(lun))
 	}
 
-	return buf.Bytes(), nil
+	data = buf.Bytes()
+
+	if length < buf.Len() {
+		data = data[0:length]
+	}
+
+	return
 }
 
 // p155, 3.22 READ CAPACITY (10) command, SCSI Commands Reference Manual, Rev. J
@@ -159,7 +165,7 @@ func readCapacity10(card *usdhc.USDHC) (data []byte, err error) {
 }
 
 // p157, 3.23 READ CAPACITY (16) command, SCSI Commands Reference Manual, Rev. J
-func readCapacity16(card *usdhc.USDHC) (data []byte, err error) {
+func readCapacity16(card *usdhc.USDHC, length int) (data []byte, err error) {
 	info := card.Info()
 	buf := new(bytes.Buffer)
 
@@ -170,7 +176,7 @@ func readCapacity16(card *usdhc.USDHC) (data []byte, err error) {
 	binary.Write(buf, binary.BigEndian, uint64(info.Blocks)-1)
 	binary.Write(buf, binary.BigEndian, uint64(info.BlockSize))
 
-	buf.Grow(32 - buf.Len())
+	buf.Grow(length - buf.Len())
 
 	return buf.Bytes(), nil
 
@@ -235,7 +241,7 @@ func handleCDB(cmd [16]byte, cbw *usb.CBW) (csw *usb.CSW, data []byte, err error
 	case MODE_SENSE_6, MODE_SENSE_10:
 		data, err = modeSense(length)
 	case REPORT_LUNS:
-		data, err = reportLUNs()
+		data, err = reportLUNs(length)
 	case READ_FORMAT_CAPACITIES:
 		data, err = readFormatCapacities(card)
 	case READ_CAPACITY_10:
@@ -266,7 +272,7 @@ func handleCDB(cmd [16]byte, cbw *usb.CBW) (csw *usb.CSW, data []byte, err error
 	case SERVICE_ACTION:
 		switch cmd[1] {
 		case READ_CAPACITY_16:
-			data, err = readCapacity16(card)
+			data, err = readCapacity16(card, length)
 		default:
 			err = fmt.Errorf("unsupported service action %#x %+v", op, cbw)
 		}
