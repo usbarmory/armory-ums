@@ -175,10 +175,15 @@ func readCapacity16(card *usdhc.USDHC, length int) (data []byte, err error) {
 
 	binary.Write(buf, binary.BigEndian, uint64(info.Blocks)-1)
 	binary.Write(buf, binary.BigEndian, uint64(info.BlockSize))
+	buf.Grow(32 - buf.Len())
 
-	buf.Grow(length - buf.Len())
+	data = buf.Bytes()
 
-	return buf.Bytes(), nil
+	if length < buf.Len() {
+		data = data[0:length]
+	}
+
+	return
 
 }
 
