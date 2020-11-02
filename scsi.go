@@ -133,10 +133,15 @@ func reportLUNs(length int) (data []byte, err error) {
 	luns := len(cards)
 
 	binary.Write(buf, binary.BigEndian, uint32(luns*8))
-	binary.Write(buf, binary.BigEndian, make([]byte, 4))
+	buf.Write(make([]byte, 4))
 
 	for lun := 0; lun < len(cards); lun++ {
-		binary.Write(buf, binary.BigEndian, uint64(lun))
+		// The information conforms to the Logical Unit Address Method defined
+		// in SCC-2, and supports only First Level addressing (for each LUN,
+		// only the second byte is used and contains the assigned LUN)."
+		buf.WriteByte(0x00)
+		binary.Write(buf, binary.BigEndian, uint8(lun))
+		buf.Write(make([]byte, 6))
 	}
 
 	data = buf.Bytes()
