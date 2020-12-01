@@ -189,7 +189,6 @@ func readCapacity16(card *usdhc.USDHC, length int) (data []byte, err error) {
 	}
 
 	return
-
 }
 
 // p33, 4.10, USB Mass Storage Class – UFI Command Specification Rev. 1.0
