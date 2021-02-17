@@ -209,7 +209,7 @@ func readFormatCapacities(card *usdhc.USDHC) (data []byte, err error) {
 func read(card *usdhc.USDHC, lba int, blocks int) (err error) {
 	addr, buf := dma.Reserve(blocks*card.Info().BlockSize, usb.DTD_PAGE_SIZE)
 
-	err = card.ReadBlocks(lba, blocks, buf)
+	err = card.ReadBlocks(lba, buf)
 
 	if err != nil {
 		dma.Release(addr)
