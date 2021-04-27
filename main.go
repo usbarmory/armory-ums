@@ -25,10 +25,6 @@ var cards []*usdhc.USDHC
 func init() {
 	log.SetFlags(0)
 
-	if !imx6.Native {
-		return
-	}
-
 	if err := imx6.SetARMFreq(900); err != nil {
 		panic(fmt.Sprintf("WARNING: error setting ARM frequency: %v\n", err))
 	}
