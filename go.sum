@@ -1,8 +1,8 @@
-github.com/f-secure-foundry/crucible v0.0.0-20210315084109-6d5c7d388821 h1:BnFQlJqRp0hJgP/HutRCW5Bygj5mnNQnB69/mBP3Nto=
-github.com/f-secure-foundry/crucible v0.0.0-20210315084109-6d5c7d388821/go.mod h1:jCHVDC8pjvRFhkb9/a7AyrDdt2J8PVG7r+TCBFp4/Cg=
-github.com/f-secure-foundry/tamago v0.0.0-20210217103808-875e533027e3/go.mod h1:+xmhdYxGfaNhWUZ/F1mbwFu38H73slg/k/oPjOL7tc8=
-github.com/f-secure-foundry/tamago v0.0.0-20210315074807-ce8c6be0c4fc h1:4qmwmUbsLFkDCi4qRloooVgSIzicSWHDGxwWpTt0XS0=
-github.com/f-secure-foundry/tamago v0.0.0-20210315074807-ce8c6be0c4fc/go.mod h1:+xmhdYxGfaNhWUZ/F1mbwFu38H73slg/k/oPjOL7tc8=
+github.com/f-secure-foundry/crucible v0.0.0-20210503082702-01e44ec14e7a h1:/5nEA9q/DUp5Of/4bVUiZ6bYn2ojfBALisISDvBiGwQ=
+github.com/f-secure-foundry/crucible v0.0.0-20210503082702-01e44ec14e7a/go.mod h1:VLKl8P1ZuqjtNLVE6sMllYJ8evwW0wiSZ1EwIWXi0C8=
+github.com/f-secure-foundry/tamago v0.0.0-20210430110219-3df6c8f004e9/go.mod h1:Zs5U/3bxiFFQzq23F7KkmS8Gz1jTGH141hbcdFHCk8E=
+github.com/f-secure-foundry/tamago v0.0.0-20210507075340-aef05df747d4 h1:PSYe10O+osc81mPvqeYrYV6AKXrH3yW/NpWylGOu3zE=
+github.com/f-secure-foundry/tamago v0.0.0-20210507075340-aef05df747d4/go.mod h1:Zs5U/3bxiFFQzq23F7KkmS8Gz1jTGH141hbcdFHCk8E=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
