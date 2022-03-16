@@ -135,7 +135,7 @@ func reportLUNs(length int) (data []byte, err error) {
 	binary.Write(buf, binary.BigEndian, uint32(luns*8))
 	buf.Write(make([]byte, 4))
 
-	for lun := 0; lun < len(cards); lun++ {
+	for lun := 0; lun < luns; lun++ {
 		// The information conforms to the Logical Unit Address Method defined
 		// in SCC-2, and supports only First Level addressing (for each LUN,
 		// only the second byte is used and contains the assigned LUN)."
