@@ -1,4 +1,4 @@
-// https://github.com/f-secure-foundry/armory-ums
+// https://github.com/usbarmory/armory-ums
 //
 // Copyright (c) F-Secure Corporation
 // https://foundry.f-secure.com
@@ -16,9 +16,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/f-secure-foundry/tamago/dma"
-	"github.com/f-secure-foundry/tamago/soc/imx6"
-	"github.com/f-secure-foundry/tamago/soc/imx6/usb"
+	"github.com/usbarmory/tamago/dma"
+	"github.com/usbarmory/tamago/soc/imx6"
+	"github.com/usbarmory/tamago/soc/imx6/usb"
 )
 
 const maxPacketSize = 512

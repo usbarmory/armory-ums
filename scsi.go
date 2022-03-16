@@ -1,4 +1,4 @@
-// https://github.com/f-secure-foundry/armory-ums
+// https://github.com/usbarmory/armory-ums
 //
 // Copyright (c) F-Secure Corporation
 // https://foundry.f-secure.com
@@ -13,9 +13,9 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/f-secure-foundry/tamago/dma"
-	"github.com/f-secure-foundry/tamago/soc/imx6/usb"
-	"github.com/f-secure-foundry/tamago/soc/imx6/usdhc"
+	"github.com/usbarmory/tamago/dma"
+	"github.com/usbarmory/tamago/soc/imx6/usb"
+	"github.com/usbarmory/tamago/soc/imx6/usdhc"
 )
 
 const (
