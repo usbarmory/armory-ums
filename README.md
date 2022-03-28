@@ -72,13 +72,13 @@ Authors
 =======
 
 Andrea Barisani  
-andrea.barisani@f-secure.com | andrea@inversepath.com  
+andrea.barisani@withsecure.com | andrea@inversepath.com  
 
 License
 =======
 
 armory-ums | https://github.com/usbarmory/armory-ums  
-Copyright (c) F-Secure Corporation
+Copyright (c) WithSecure Corporation
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
