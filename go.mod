@@ -3,5 +3,5 @@ module github.com/usbarmory/armory-ums
 go 1.18
 
 require (
-	github.com/usbarmory/tamago v0.0.0-20220316100121-e9baee61883d
+	github.com/usbarmory/tamago v0.0.0-20220523113853-2cf301ace971
 )
