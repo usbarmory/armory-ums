@@ -73,10 +73,10 @@ func main() {
 	iface := buildMassStorageInterface()
 	device.Configurations[0].AddInterface(iface)
 
-	usb.USB1.Init()
-	usb.USB1.DeviceMode()
-	usb.USB1.Reset()
+	usbarmory.USB1.Init()
+	usbarmory.USB1.DeviceMode()
+	usbarmory.USB1.Reset()
 
 	// never returns
-	usb.USB1.Start(device)
+	usbarmory.USB1.Start(device)
 }
