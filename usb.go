@@ -17,8 +17,8 @@ import (
 	"strings"
 
 	"github.com/usbarmory/tamago/dma"
-	"github.com/usbarmory/tamago/soc/imx6"
-	"github.com/usbarmory/tamago/soc/imx6/usb"
+	"github.com/usbarmory/tamago/soc/nxp/imx6ul"
+	"github.com/usbarmory/tamago/soc/nxp/usb"
 )
 
 const maxPacketSize = 512
@@ -53,7 +53,7 @@ func configureDevice(device *usb.Device) {
 	//
 	// The serial number format is [0-9A-F]{12,}, the NXP Unique
 	// ID is converted accordingly.
-	uid := imx6.UniqueID()
+	uid := imx6ul.UniqueID()
 	serial := strings.ToUpper(hex.EncodeToString(uid[:]))
 
 	iSerial, _ := device.AddString(serial)

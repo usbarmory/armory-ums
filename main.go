@@ -12,9 +12,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/usbarmory/tamago/soc/imx6"
-	"github.com/usbarmory/tamago/soc/imx6/usb"
-	"github.com/usbarmory/tamago/soc/imx6/usdhc"
+	"github.com/usbarmory/tamago/soc/nxp/imx6ul"
+	"github.com/usbarmory/tamago/soc/nxp/usb"
+	"github.com/usbarmory/tamago/soc/nxp/usdhc"
 
 	usbarmory "github.com/usbarmory/tamago/board/usbarmory/mk2"
 )
@@ -24,7 +24,7 @@ var cards []*usdhc.USDHC
 func init() {
 	log.SetFlags(0)
 
-	if err := imx6.SetARMFreq(900); err != nil {
+	if err := imx6ul.SetARMFreq(900); err != nil {
 		panic(fmt.Sprintf("WARNING: error setting ARM frequency: %v\n", err))
 	}
 }

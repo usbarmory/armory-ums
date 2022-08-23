@@ -14,8 +14,8 @@ import (
 	"fmt"
 
 	"github.com/usbarmory/tamago/dma"
-	"github.com/usbarmory/tamago/soc/imx6/usb"
-	"github.com/usbarmory/tamago/soc/imx6/usdhc"
+	"github.com/usbarmory/tamago/soc/nxp/usb"
+	"github.com/usbarmory/tamago/soc/nxp/usdhc"
 )
 
 const (
