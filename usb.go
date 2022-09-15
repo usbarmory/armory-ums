@@ -27,7 +27,7 @@ const maxPacketSize = 512
 var send = make(chan []byte, 2)
 
 // queue for IN device DMA buffers for later release
-var free = make(chan uint32, 1)
+var free = make(chan uint, 1)
 
 func configureDevice(device *usb.Device) {
 	// Supported Language Code Zero: English
