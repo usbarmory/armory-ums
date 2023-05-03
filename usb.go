@@ -11,10 +11,8 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/hex"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/usbarmory/tamago/dma"
 	"github.com/usbarmory/tamago/soc/nxp/imx6ul"
@@ -53,10 +51,7 @@ func configureDevice(device *usb.Device) {
 	//
 	// The serial number format is [0-9A-F]{12,}, the NXP Unique
 	// ID is converted accordingly.
-	uid := imx6ul.UniqueID()
-	serial := strings.ToUpper(hex.EncodeToString(uid[:]))
-
-	iSerial, _ := device.AddString(serial)
+	iSerial, _ := device.AddString(fmt.Sprintf("%X", imx6ul.UniqueID()))
 	device.Descriptor.SerialNumber = iSerial
 
 	conf := &usb.ConfigurationDescriptor{}
@@ -74,13 +69,11 @@ func buildMassStorageInterface() (iface *usb.InterfaceDescriptor) {
 	// interface
 	iface = &usb.InterfaceDescriptor{}
 	iface.SetDefaults()
+
 	iface.NumEndpoints = 2
-	// Mass Storage
-	iface.InterfaceClass = 0x8
-	// SCSI
-	iface.InterfaceSubClass = 0x6
-	// Bulk-Only
-	iface.InterfaceProtocol = 0x50
+	iface.InterfaceClass = usb.MASS_STORAGE_CLASS
+	iface.InterfaceSubClass = usb.SCSI_CLASS
+	iface.InterfaceProtocol = usb.BULK_ONLY_TRANSPORT_PROTOCOL
 	iface.Interface = 0
 
 	// EP1 IN endpoint (bulk)

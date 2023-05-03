@@ -2,9 +2,7 @@ module github.com/usbarmory/armory-ums
 
 go 1.19
 
-require (
-	github.com/usbarmory/tamago v0.0.0-20220915152253-099f7888fe70
-)
+require github.com/usbarmory/tamago v0.0.0-20230502123508-9ac826d5067f
 
 require (
 	github.com/usbarmory/crucible v0.0.0-20220823085715-c9e97b45a8b2 // indirect
