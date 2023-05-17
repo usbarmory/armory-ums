@@ -9,7 +9,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/usbarmory/tamago/soc/nxp/imx6ul"
@@ -24,8 +23,11 @@ var cards []*usdhc.USDHC
 func init() {
 	log.SetFlags(0)
 
-	if err := imx6ul.SetARMFreq(900); err != nil {
-		panic(fmt.Sprintf("WARNING: error setting ARM frequency: %v\n", err))
+	switch imx6ul.Model() {
+	case "i.MX6ULL", "i.MX6ULZ":
+		imx6ul.SetARMFreq(imx6ul.FreqMax)
+	case "i.MX6UL":
+		imx6ul.SetARMFreq(imx6ul.Freq528)
 	}
 }
 
