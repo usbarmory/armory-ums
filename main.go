@@ -36,9 +36,8 @@ func detect(card *usdhc.USDHC) (err error) {
 	if card == nil {
 		return errors.New("no such device")
 	}
-	err = card.Detect()
 
-	if err != nil {
+	if err = card.Detect(); err != nil {
 		return
 	}
 
