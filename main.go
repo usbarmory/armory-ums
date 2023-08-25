@@ -9,6 +9,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 
 	"github.com/usbarmory/tamago/soc/nxp/imx6ul"
@@ -32,6 +33,9 @@ func init() {
 }
 
 func detect(card *usdhc.USDHC) (err error) {
+	if card == nil {
+		return errors.New("no such device")
+	}
 	err = card.Detect()
 
 	if err != nil {
