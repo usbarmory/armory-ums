@@ -34,6 +34,15 @@ git clone https://github.com/usbarmory/armory-ums && cd armory-ums
 make CROSS_COMPILE=arm-none-eabi- imx
 ```
 
+Note that the command above embeds build and VCS information that is useful
+for understanding the origin of a binary, but this prevents the same binary
+from being reproducibly built elsewhere. To strip this information so that
+the binary can be reproducibly built elsewhere:
+
+```
+REPRODUCIBLE=1 make imx
+```
+
 Executing
 =========
 
