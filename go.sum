@@ -1,8 +1,4 @@
-github.com/usbarmory/crucible v0.0.0-20230824072712-7fe0bb96da65 h1:aKH5gAPHjLJlddsKdCu2W2y0+ZweSaxVLJB/FJchRdw=
-github.com/usbarmory/crucible v0.0.0-20230824072712-7fe0bb96da65/go.mod h1:8CtxsBNuSD2E0f23kH74XcHlenwMnn/RmTQ1wn4Lwtw=
-github.com/usbarmory/tamago v0.0.0-20231016071039-36729d8ffc65 h1:N4td1q/gxe6ZxH/k1PirasT0tiMiSjyLWX4F+FKZieY=
-github.com/usbarmory/tamago v0.0.0-20231016071039-36729d8ffc65/go.mod h1:uCPXcPo8SZulhZPz8irfVqzwVlPZ45w7CTJxkfxueGA=
-go.mozilla.org/pkcs7 v0.0.0-20210826202110-33d05740a352 h1:CCriYyAfq1Br1aIYettdHZTy8mBTIPo7We18TuO/bak=
-go.mozilla.org/pkcs7 v0.0.0-20210826202110-33d05740a352/go.mod h1:SNgMg+EgDFwmvSmLRTNKC5fegJjB7v23qTQ0XLGUNHk=
-golang.org/x/sync v0.4.0 h1:zxkM55ReGkDlKSM+Fu41A+zmbZuaPVbGMzvvdUPznYQ=
-golang.org/x/sync v0.4.0/go.mod h1:FU7BRWz2tNW+3quACPkgCx/L+uEAv1htQ0V83Z9Rj+Y=
+github.com/usbarmory/tamago v0.0.0-20240924114619-273d67cd811d h1:rPQ3OVO/SRWviAFLpXO4OUOtTlUH2IIAzZvcWfW9elk=
+github.com/usbarmory/tamago v0.0.0-20240924114619-273d67cd811d/go.mod h1:NL88q9ZsIPYFzXaosAeKgu1Kr5i1k4Rau3wnbNBL5bY=
+golang.org/x/sync v0.8.0 h1:3NFvSEYkUoMifnESzZl15y791HH1qU2xm6eCJU5ZPXQ=
+golang.org/x/sync v0.8.0/go.mod h1:Czt+wKu1gCyEFDUtn0jG5QVvpJ6rzVqr5aXyt9drQfk=
