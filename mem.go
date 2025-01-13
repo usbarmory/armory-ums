@@ -14,8 +14,8 @@ import (
 	"github.com/usbarmory/tamago/dma"
 )
 
-// Override usbarmory pkg ramSize and `mem` allocation, as this application
-// requires large DMA descriptors.
+// Override standard memory allocation as this application requires large DMA
+// descriptors.
 
 //go:linkname ramSize runtime.ramSize
 var ramSize uint32 = 0x10000000 // 256MB
