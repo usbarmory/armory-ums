@@ -81,7 +81,7 @@ Authors
 =======
 
 Andrea Barisani  
-andrea.barisani@withsecure.com | andrea@inversepath.com  
+andrea@inversepath.com  
 
 License
 =======
