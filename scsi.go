@@ -41,7 +41,7 @@ const (
 )
 
 const (
-	// exactly 8 bytes required
+	// exactly 8 bytes required, historical value kept
 	VendorID = "F-Secure"
 	// exactly 16 bytes required
 	ProductID = "USB armory Mk II"
