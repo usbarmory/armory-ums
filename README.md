@@ -87,14 +87,7 @@ License
 =======
 
 armory-ums | https://github.com/usbarmory/armory-ums  
-Copyright (c) WithSecure Corporation
+Copyright (c) The armory-ums authors. All Rights Reserved.
 
-This program is free software: you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation under version 3 of the License.
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE. See the GNU General Public License for more details.
-
-See accompanying LICENSE file for full details.
+These source files are distributed under the BSD-style license found in the
+[LICENSE](https://github.com/usbarmory/armory-ums/blob/master/LICENSE) file.

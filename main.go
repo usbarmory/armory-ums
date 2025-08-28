@@ -1,6 +1,6 @@
 // https://github.com/usbarmory/armory-ums
 //
-// Copyright (c) WithSecure Corporation
+// Copyright (c) The armory-ums authors. All Rights Reserved.
 //
 // Use of this source code is governed by the license
 // that can be found in the LICENSE file.
