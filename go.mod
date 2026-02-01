@@ -1,7 +1,5 @@
 module github.com/usbarmory/armory-ums
 
-go 1.24.3
+go 1.25.6
 
-require (
-	github.com/usbarmory/tamago v0.0.0-20250527211737-92513e7e3efd
-)
+require github.com/usbarmory/tamago v1.25.6
