@@ -16,7 +16,7 @@ import (
 // Override standard memory allocation as this application requires large DMA
 // descriptors.
 
-//go:linkname ramSize runtime.ramSize
+//go:linkname ramSize runtime/goos.RamSize
 var ramSize uint32 = 0x10000000 // 256MB
 
 // 2nd half of external RAM (256MB)

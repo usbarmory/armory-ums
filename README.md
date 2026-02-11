@@ -31,7 +31,7 @@ units the `imx_signed` target should be used with the relevant
 
 ```
 git clone https://github.com/usbarmory/armory-ums && cd armory-ums
-make CROSS_COMPILE=arm-none-eabi- imx
+make imx
 ```
 
 Note that the command above embeds build and VCS information that is useful
