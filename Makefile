@@ -20,6 +20,7 @@ ifeq ("${REPRODUCIBLE}","1")
 endif
 
 APP := armory-ums
+TAMAGO ?= $(shell go tool -n github.com/usbarmory/tamago/cmd/tamago)
 GOENV := GO_EXTLINK_ENABLED=0 CGO_ENABLED=0 GOOS=tamago GOOSPKG=github.com/usbarmory/tamago GOARM=7 GOARCH=arm
 TEXT_START := 0x80010000 # ramStart (defined in imx6/imx6ul/memory.go) + 0x10000
 GOFLAGS := -tags linkramsize ${BUILD_FLAGS} -ldflags "-s -w -T $(TEXT_START) -E _rt0_arm_tamago -R 0x1000 -X 'main.Build=${BUILD}' -X 'main.Revision=${REV}'"
